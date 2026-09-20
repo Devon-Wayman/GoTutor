@@ -1,0 +1,14 @@
+{
+  "name": "go-ar-tutor",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "main": "electron/main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron ."
+  },
+  "devDependencies": {
+    "electron": "^44.4.3"
+  }
+}

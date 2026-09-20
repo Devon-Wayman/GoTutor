@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Go AR Tutor</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <header>
+    <div>
+      <h1>Go AR Tutor</h1>
+      <p>Camera, projector, and automatic board calibration</p>
+    </div>
+    <div class="status-row">
+      <span id="visionStatus" class="pill warn">Vision starting…</span>
+      <span id="cameraStatus" class="pill">Camera off</span>
+      <span id="projectorStatus" class="pill">Projector not selected</span>
+    </div>
+  </header>
+
+  <main>
+    <section class="card camera-card">
+      <div class="section-head">
+        <div>
+          <h2>Camera</h2>
+          <p>The selected source is both previewed here and sent to OpenCV.</p>
+        </div>
+      </div>
+
+      <div class="controls">
+        <label>
+          Video source
+          <select id="cameraSelect"></select>
+        </label>
+
+        <label>
+          Capture resolution
+          <select id="resolutionSelect">
+            <option value="1280x720">1280 × 720</option>
+            <option value="1920x1080" selected>1920 × 1080</option>
+            <option value="2560x1440">2560 × 1440</option>
+            <option value="3840x2160">3840 × 2160</option>
+          </select>
+        </label>
+
+        <button id="startCamera">Start camera</button>
+        <button id="refreshCameras" class="secondary">Refresh</button>
+      </div>
+
+      <div class="preview-wrap">
+        <video id="cameraPreview" autoplay muted playsinline></video>
+        <canvas id="frameCanvas" hidden></canvas>
+        <canvas id="overlayCanvas"></canvas>
+      </div>
+
+      <div id="cameraInfo" class="detail"></div>
+    </section>
+
+    <section class="card">
+      <h2>Projector</h2>
+
+      <div class="controls vertical">
+        <label>
+          Output display
+          <select id="displaySelect"></select>
+        </label>
+
+        <label class="check">
+          <input id="autoCalibrate" type="checkbox">
+          Automatically calibrate when the projector is connected
+        </label>
+
+        <div class="button-row">
+          <button id="openProjector">Open output</button>
+          <button id="identifyDisplays" class="secondary">Identify displays</button>
+        </div>
+
+        <button id="runCalibration" class="accent">
+          Detect board + auto-calibrate projection
+        </button>
+      </div>
+
+      <div class="calibration-box">
+        <strong>Calibration</strong>
+        <div id="calibrationStatus">Not calibrated.</div>
+        <progress id="calibrationProgress" max="25" value="0"></progress>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>How auto-calibration works</h2>
+      <ol>
+        <li>Projector turns black and OpenCV detects the physical Go board.</li>
+        <li>The projector flashes known dots one at a time.</li>
+        <li>OpenCV finds each dot in camera coordinates using frame differencing.</li>
+        <li>RANSAC solves the camera ↔ projector homography.</li>
+        <li>The physical board corners are transformed into projector coordinates.</li>
+        <li>A 19×19 test grid is projected exactly over the board.</li>
+      </ol>
+
+      <p class="detail">
+        The sequential-dot approach is intentionally tolerant of keystone,
+        projector angle, different board sizes, and points falling outside
+        the webcam view.
+      </p>
+    </section>
+  </main>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
