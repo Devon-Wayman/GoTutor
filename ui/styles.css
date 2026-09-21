@@ -1,11 +1,19 @@
 :root {
   color-scheme: dark;
-  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family:
+    Inter,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
   background: #0d0f13;
   color: #edf0f5;
 }
 
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+}
 
 body {
   margin: 0;
@@ -23,7 +31,11 @@ header {
   background: #12151b;
 }
 
-h1, h2, p { margin-top: 0; }
+h1,
+h2,
+p {
+  margin-top: 0;
+}
 
 header h1 {
   margin-bottom: 4px;
@@ -50,7 +62,8 @@ main {
 }
 
 .camera-card {
-  grid-row: span 2;
+  /* grid-row: span 2; */
+  grid-row: auto;
 }
 
 .controls {
@@ -79,7 +92,8 @@ label.check {
   align-items: center;
 }
 
-select, button {
+select,
+button {
   min-height: 38px;
   border-radius: 8px;
   border: 1px solid #353c49;
@@ -120,6 +134,15 @@ button.accent {
   background: #050608;
   border: 1px solid #2a303a;
 }
+/* .preview-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 8;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #050608;
+  border: 1px solid #2a303a;
+} */
 
 .preview-wrap video,
 .preview-wrap #overlayCanvas {
@@ -147,9 +170,15 @@ button.accent {
   font-size: 12px;
 }
 
-.pill.good { background: #183b2c; }
-.pill.warn { background: #493817; }
-.pill.bad  { background: #4b2020; }
+.pill.good {
+  background: #183b2c;
+}
+.pill.warn {
+  background: #493817;
+}
+.pill.bad {
+  background: #4b2020;
+}
 
 .detail {
   margin-top: 12px;
@@ -174,4 +203,50 @@ button.accent {
 progress {
   width: 100%;
   margin-top: 10px;
+}
+
+input[type="text"],
+input[type="number"] {
+  min-height: 38px;
+  border-radius: 8px;
+  border: 1px solid #353c49;
+  padding: 0 10px;
+  font: inherit;
+  background: #101319;
+  color: #edf0f5;
+  min-width: 0;
+}
+
+.path-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: end;
+  margin-bottom: 10px;
+}
+
+.path-row input {
+  width: 100%;
+}
+
+button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+
+/* Live camera hard-mask debugger */
+.camera-overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.camera-card,
+.camera-preview-wrap,
+.video-wrap {
+  position: relative;
 }

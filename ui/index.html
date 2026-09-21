@@ -1,112 +1,776 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Go AR Tutor</title>
-  <link rel="stylesheet" href="./styles.css">
+
+  <meta
+    name="viewport"
+    content="width=device-width,initial-scale=1"
+  >
+
+  <title>
+    Go AR Tutor
+  </title>
+
+  <link
+    rel="stylesheet"
+    href="./styles.css"
+  >
 </head>
+
 <body>
+
   <header>
+
     <div>
-      <h1>Go AR Tutor</h1>
-      <p>Camera, projector, and automatic board calibration</p>
+      <h1>
+        Go AR Tutor
+      </h1>
+
+      <p>
+        Camera, projector, calibration,
+        and physical board tracking
+      </p>
     </div>
+
     <div class="status-row">
-      <span id="visionStatus" class="pill warn">Vision starting…</span>
-      <span id="cameraStatus" class="pill">Camera off</span>
-      <span id="projectorStatus" class="pill">Projector not selected</span>
+
+      <span
+        id="visionStatus"
+        class="pill warn"
+      >
+        Vision starting…
+      </span>
+
+      <span
+        id="cameraStatus"
+        class="pill"
+      >
+        Camera off
+      </span>
+
+      <span
+        id="projectorStatus"
+        class="pill"
+      >
+        Projector not selected
+      </span>
+
     </div>
+
   </header>
 
+
   <main>
+
+    <!-- ====================================================
+         CAMERA
+         ==================================================== -->
+
     <section class="card camera-card">
+
       <div class="section-head">
+
         <div>
-          <h2>Camera</h2>
-          <p>The selected source is both previewed here and sent to OpenCV.</p>
+
+          <h2>
+            Camera
+          </h2>
+
+          <p>
+            The selected source is previewed here
+            and sent to OpenCV.
+          </p>
+
         </div>
+
       </div>
+
 
       <div class="controls">
+
         <label>
+
           Video source
-          <select id="cameraSelect"></select>
+
+          <select
+            id="cameraSelect"
+          ></select>
+
         </label>
+
 
         <label>
+
           Capture resolution
-          <select id="resolutionSelect">
-            <option value="1280x720">1280 × 720</option>
-            <option value="1920x1080" selected>1920 × 1080</option>
-            <option value="2560x1440">2560 × 1440</option>
-            <option value="3840x2160">3840 × 2160</option>
+
+          <select
+            id="resolutionSelect"
+          >
+
+            <option value="1280x720">
+              1280 × 720
+            </option>
+
+            <option
+              value="1920x1080"
+              selected
+            >
+              1920 × 1080
+            </option>
+
+            <option value="2560x1440">
+              2560 × 1440
+            </option>
+
+            <option value="3840x2160">
+              3840 × 2160
+            </option>
+
           </select>
+
         </label>
 
-        <button id="startCamera">Start camera</button>
-        <button id="refreshCameras" class="secondary">Refresh</button>
+
+        <button
+          id="startCamera"
+        >
+          Start camera
+        </button>
+
+
+        <button
+          id="refreshCameras"
+          class="secondary"
+        >
+          Refresh
+        </button>
+
       </div>
+
 
       <div class="preview-wrap">
-        <video id="cameraPreview" autoplay muted playsinline></video>
-        <canvas id="frameCanvas" hidden></canvas>
-        <canvas id="overlayCanvas"></canvas>
+
+        <video
+          id="cameraPreview"
+          autoplay
+          muted
+          playsinline
+        ></video>
+
+        <canvas
+          id="stoneMaskOverlay"
+          class="camera-overlay"
+        ></canvas>
+
+
+
+        <canvas
+          id="frameCanvas"
+          hidden
+        ></canvas>
+
+
+        <canvas
+          id="overlayCanvas"
+        ></canvas>
+
       </div>
 
-      <div id="cameraInfo" class="detail"></div>
+
+      <div
+        id="cameraInfo"
+        class="detail"
+      ></div>
+
     </section>
 
+
+    <!-- ====================================================
+         PROJECTOR / BOARD DETECTION
+         ==================================================== -->
+
     <section class="card">
-      <h2>Projector</h2>
+
+      <h2>
+        Projector & Board Detection
+      </h2>
+
 
       <div class="controls vertical">
+
         <label>
+
           Output display
-          <select id="displaySelect"></select>
+
+          <select
+            id="displaySelect"
+          ></select>
+
         </label>
 
+
+        <!--
+          NEW:
+          Projector illumination is used BEFORE calibration so
+          the camera can see the board clearly in a dark room.
+        -->
+        <label>
+
+          Board illumination
+
+          <input
+            id="illuminationLevel"
+            type="range"
+            min="20"
+            max="100"
+            step="5"
+            value="72"
+          >
+
+          <span
+            id="illuminationValue"
+          >
+            72%
+          </span>
+
+        </label>
+
+
         <label class="check">
-          <input id="autoCalibrate" type="checkbox">
-          Automatically calibrate when the projector is connected
+
+          <input
+            id="illuminateOnLaunch"
+            type="checkbox"
+            checked
+          >
+
+          Illuminate external projector
+          when the app starts
+
+        </label>
+
+
+        <div class="button-row">
+
+          <button
+            id="openProjector"
+          >
+            Open output
+          </button>
+
+
+          <button
+            id="illuminateBoard"
+            class="secondary"
+          >
+            Illuminate Board
+          </button>
+
+
+          <button
+            id="identifyDisplays"
+            class="secondary"
+          >
+            Identify displays
+          </button>
+
+        </div>
+
+
+        <button
+          id="blackProjector"
+          class="secondary"
+        >
+          Projector Black
+        </button>
+
+      </div>
+
+
+      <!--
+        NEW:
+        Live board-detection status. Calibration remains disabled
+        until OpenCV has a sufficiently confident board candidate.
+      -->
+      <div class="calibration-box">
+
+        <strong>
+          Board Detection
+        </strong>
+
+        <div
+          id="boardDetectionStatus"
+        >
+          Start the camera to detect the board.
+        </div>
+
+      </div>
+
+
+      <button
+        id="runCalibration"
+        class="accent"
+        disabled
+        style="
+          width:100%;
+          margin-top:14px;
+        "
+      >
+        Begin Calibration
+      </button>
+
+
+      <div class="calibration-box">
+
+        <strong>
+          Calibration
+        </strong>
+
+        <div
+          id="calibrationStatus"
+        >
+          Waiting for board detection.
+        </div>
+
+        <progress
+          id="calibrationProgress"
+          max="100"
+          value="0"
+        ></progress>
+
+      </div>
+
+
+      <div class="calibration-box">
+
+        <strong>
+          Physical Grid Margin
+        </strong>
+
+        <p class="detail">
+          These values are physical board geometry, not projector
+          calibration correction. They define the margin between the
+          detected wooden board edge and the outermost printed Go-grid
+          intersections.
+        </p>
+
+        <label>
+          Horizontal inset
+
+          <input
+            id="gridInsetX"
+            type="range"
+            min="0"
+            max="10"
+            step="0.1"
+            value="3.5"
+          >
+
+          <span id="gridInsetXValue">
+            3.5%
+          </span>
+        </label>
+
+        <label>
+          Vertical inset
+
+          <input
+            id="gridInsetY"
+            type="range"
+            min="0"
+            max="10"
+            step="0.1"
+            value="3.5"
+          >
+
+          <span id="gridInsetYValue">
+            3.5%
+          </span>
         </label>
 
         <div class="button-row">
-          <button id="openProjector">Open output</button>
-          <button id="identifyDisplays" class="secondary">Identify displays</button>
+
+          <button
+            id="toggleGridPreview"
+            class="secondary"
+          >
+            Show Alignment Grid
+          </button>
+
+          <button
+            id="resetGridInset"
+            class="secondary"
+          >
+            Reset to 3.5%
+          </button>
+
         </div>
 
-        <button id="runCalibration" class="accent">
-          Detect board + auto-calibrate projection
-        </button>
       </div>
 
       <div class="calibration-box">
-        <strong>Calibration</strong>
-        <div id="calibrationStatus">Not calibrated.</div>
-        <progress id="calibrationProgress" max="25" value="0"></progress>
+
+        <strong>
+          Stone Detection Boundary
+        </strong>
+
+        <p class="detail">
+          Sets how far outside the printed Go-grid perimeter dark pixels
+          are allowed to influence an edge stone.
+        </p>
+
+        <label>
+          Outside-grid tolerance
+
+          <input
+            id="stoneOutsideTolerance"
+            type="range"
+            min="0"
+            max="5"
+            step="0.1"
+            value="1.2"
+          >
+
+          <span id="stoneOutsideToleranceValue">
+            1.2%
+          </span>
+        </label>
+
+
+        <label>
+          Hard-mask inset
+
+          <input
+            id="stoneHardMaskInset"
+            type="range"
+            min="0"
+            max="8"
+            step="0.1"
+            value="0"
+          >
+
+          <span id="stoneHardMaskInsetValue">
+            0.0%
+          </span>
+        </label>
+
+        <label>
+          Confirmation frames
+
+          <input
+            id="stoneConfirmFrames"
+            type="range"
+            min="2"
+            max="8"
+            step="1"
+            value="4"
+          >
+
+          <span id="stoneConfirmFramesValue">
+            4
+          </span>
+        </label>
+
+        <label class="checkbox-row">
+          <input
+            id="showStoneMaskOnCamera"
+            type="checkbox"
+            checked
+          >
+          Show hard mask on camera preview
+        </label>
+
+        <div class="button-row">
+
+          <button
+            id="toggleStoneZonePreview"
+            class="secondary"
+          >
+            Show Detection Boundary
+          </button>
+
+          <button
+            id="resetStoneZone"
+            class="secondary"
+          >
+            Reset to 1.2%
+          </button>
+
+        </div>
+
+        <p class="detail">
+          Green = printed-grid perimeter. Red = outer tolerance boundary.
+          The shaded camera-preview area is the actual hard OpenCV exclusion
+          region. Confirmation frames control how long a stone must remain
+          stable before becoming a move.
+        </p>
+
       </div>
+
+
     </section>
+
+
+    <!-- ====================================================
+         PHYSICAL BLACK-STONE TRACKING
+         ==================================================== -->
 
     <section class="card">
-      <h2>How auto-calibration works</h2>
-      <ol>
-        <li>Projector turns black and OpenCV detects the physical Go board.</li>
-        <li>The projector flashes known dots one at a time.</li>
-        <li>OpenCV finds each dot in camera coordinates using frame differencing.</li>
-        <li>RANSAC solves the camera ↔ projector homography.</li>
-        <li>The physical board corners are transformed into projector coordinates.</li>
-        <li>A 19×19 test grid is projected exactly over the board.</li>
-      </ol>
+
+      <h2>
+        Physical Board
+      </h2>
+
+
+      <p>
+        Current prototype configuration:
+        you use physical black stones and
+        the AI will eventually use projected
+        white stones.
+      </p>
+
+
+      <div class="controls vertical">
+
+        <button
+          id="captureEmptyBoard"
+          class="secondary"
+        >
+          Capture Empty Board
+        </button>
+
+
+        <button
+          id="startStoneTracking"
+          class="accent"
+        >
+          Start Stone Tracking
+        </button>
+
+
+        <button
+          id="stopStoneTracking"
+          class="secondary"
+        >
+          Stop Tracking
+        </button>
+
+      </div>
+
+
+      <div
+        id="stoneStatus"
+        class="calibration-box"
+      >
+        Empty-board reference not captured.
+      </div>
+
+
+      <canvas
+        id="logicalBoard"
+        width="500"
+        height="500"
+        style="
+          width:100%;
+          margin-top:14px;
+          background:#d5a95e;
+          border-radius:8px;
+        "
+      ></canvas>
+
+    </section>
+
+
+
+    <!-- ====================================================
+         GAME / KATAGO
+         ==================================================== -->
+
+    <section class="card">
+      <h2>Game & AI</h2>
+
+      <div class="controls vertical">
+        <label>
+          Mode
+          <select id="gameMode">
+            <option value="play">Play vs AI</option>
+            <option value="teach">Teach Mode</option>
+          </select>
+        </label>
+
+        <label>
+          Projected AI stone size
+
+          <input
+            id="projectedStoneScale"
+            type="range"
+            min="45"
+            max="100"
+            step="1"
+            value="78"
+          >
+
+          <span id="projectedStoneScaleValue">
+            78%
+          </span>
+        </label>
+
+        <p class="detail">
+          Relative to one grid spacing. The projected mark follows the
+          board perspective instead of remaining a screen-space circle.
+        </p>
+
+        <label>
+          Player side / board orientation
+          <select id="boardOrientation">
+            <option value="bottom">Bottom edge</option>
+            <option value="top">Top edge</option>
+            <option value="left">Left edge</option>
+            <option value="right">Right edge</option>
+          </select>
+        </label>
+
+        <label class="check">
+          <input id="showSeatLabels" type="checkbox" checked>
+          Project "Player" and "AI" virtual seat labels
+        </label>
+
+        <div class="button-row">
+          <button id="previewOrientation" class="secondary">
+            Preview Orientation
+          </button>
+        </div>
+
+        <label>
+          Komi
+          <input id="gameKomi" type="number" value="6.5" step="0.5">
+        </label>
+      </div>
+
+      <h3>KataGo</h3>
+
+      <div class="path-row">
+        <label>
+          Executable
+          <input id="katagoExecutable" type="text" value="katago" placeholder="katago or /path/to/katago">
+        </label>
+        <button id="browseKatagoExecutable" class="secondary">Browse</button>
+      </div>
+
+      <div class="path-row">
+        <label>
+          Neural network model
+          <input id="katagoModel" type="text" placeholder="/path/to/model.bin.gz">
+        </label>
+        <button id="browseKatagoModel" class="secondary">Browse</button>
+      </div>
+
+      <div class="path-row">
+        <label>
+          GTP config
+          <input id="katagoConfig" type="text" placeholder="/path/to/gtp_example.cfg">
+        </label>
+        <button id="browseKatagoConfig" class="secondary">Browse</button>
+      </div>
+
+      <div class="button-row">
+        <button id="detectKatagoPaths" class="secondary">
+          Auto Detect & Save Paths
+        </button>
+        <button id="testKatago" class="secondary">Test KataGo</button>
+        <button id="newGame" class="accent">New Game</button>
+      </div>
+
+      <div class="button-row">
+        <button id="passMove" class="secondary" disabled>Pass</button>
+        <button id="teachHint" class="secondary" disabled>Hint</button>
+        <button id="resignGame" class="secondary" disabled>Resign</button>
+      </div>
+
+      <div id="katagoStatus" class="calibration-box">
+        KataGo has not been tested yet.
+      </div>
+
+      <div id="gameStatus" class="calibration-box">
+        No active game.
+      </div>
 
       <p class="detail">
-        The sequential-dot approach is intentionally tolerant of keystone,
-        projector angle, different board sizes, and points falling outside
-        the webcam view.
+        Human = physical Black stones. KataGo = projected White stones.
+        Teach Mode currently projects a cyan hint for Black.
       </p>
     </section>
+
+
+    <!-- ====================================================
+         WORKFLOW DESCRIPTION
+         ==================================================== -->
+
+    <section class="card">
+
+      <h2>
+        Startup Workflow
+      </h2>
+
+
+      <ol>
+
+        <li>
+          The external projector opens with
+          a gray/white illumination field.
+        </li>
+
+        <li>
+          Start the camera and position the
+          complete Go board in view.
+        </li>
+
+        <li>
+          OpenCV detects the physical board.
+        </li>
+
+        <li>
+          Once board confidence is sufficient,
+          Begin Calibration is enabled.
+        </li>
+
+        <li>
+          Calibration switches the projector
+          to black and performs coarse/dense
+          projected-point scans.
+        </li>
+
+        <li>
+          The solved 19×19 grid appears briefly
+          for visual verification.
+        </li>
+
+        <li>
+          The projector automatically returns
+          to black for gameplay/stone tracking.
+        </li>
+
+      </ol>
+
+
+      <p class="detail">
+        If the board is difficult to detect,
+        increase or decrease the illumination
+        slider until its outer boundary and
+        grid are clearly visible in the camera.
+      </p>
+
+    </section>
+
   </main>
 
-  <script type="module" src="./app.js"></script>
+
+  <script
+    type="module"
+    src="./app.js"
+  ></script>
+
 </body>
 </html>

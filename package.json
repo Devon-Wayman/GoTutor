@@ -6,6 +6,8 @@
   "main": "electron/main.js",
   "scripts": {
     "start": "electron .",
+    "start:debug": "electron . --go-debug",
+    "debug": "electron . --go-debug",
     "dev": "electron ."
   },
   "devDependencies": {

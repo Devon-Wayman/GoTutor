@@ -1,0 +1,6 @@
+{
+  "version": 1,
+  "executablePath": "katago",
+  "modelPath": "./local/katago/models/your-model.bin.gz",
+  "configPath": "./local/katago/configs/gtp_example.cfg"
+}

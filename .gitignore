@@ -3,6 +3,12 @@
 # Node / Electron / Python / OpenCV / macOS
 # ============================================================
 
+# ignore katago models
+config/katago.paths.json
+
+# ignore debug logs
+debug_logs/
+
 # ----------------------------
 # macOS
 # ----------------------------
